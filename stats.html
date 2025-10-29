@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Call Analytics Stats - Quay 1</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Helvetica Neue', Arial, sans-serif;
+            font-weight: 400;
+            background: #F7FAFC;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 2.5rem;
+            color: #2D3748;
+        }
+
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: #EDF2F7;
+            padding: 10px 20px;
+            border-radius: 8px;
+        }
+
+        .nav-bar a {
+            padding: 10px 20px;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            background: white;
+            color: #2D3748;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-bar a:hover {
+            background: #4A5568;
+            color: white;
+            border-color: #4A5568;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filters label {
+            font-weight: 500;
+            color: #2D3748;
+        }
+
+        select {
+            padding: 10px 15px;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            font-size: 1rem;
+            background: white;
+            color: #2D3748;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 400;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #4A5568;
+            box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        th {
+            background: #EDF2F7;
+            color: #2D3748;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+        }
+
+        td {
+            color: #2D3748;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #DC2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-weight: 500;
+        }
+
+        button#clearData {
+            padding: 10px 20px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 6px;
+            background: white;
+            color: #DC2626;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        button#clearData:hover {
+            background: #DC2626;
+            color: white;
+            border-color: #DC2626;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-bar {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Quay 1 International Realty - Stats</h1>
+        </div>
+        
+        <div class="nav-bar">
+            <a href="index.html">Dashboard</a>
+            <a href="stats.html">Stats</a>
+            <a href="import.html">Import Data</a>
+        </div>
+
+        <div class="error" id="errorMessage"></div>
+
+        <div class="filters" id="filters">
+            <label>
+                <strong>Month:</strong>
+                <select id="monthFilter">
+                    <option value="all">All Months</option>
+                </select>
+            </label>
+            <label>
+                <strong>Caller:</strong>
+                <select id="callerFilter">
+                    <option value="all">All Callers</option>
+                </select>
+            </label>
+            <button id="clearData"><i class="fas fa-trash-alt"></i> Clear Data</button>
+        </div>
+
+        <table id="callerStatsTable">
+            <thead>
+                <tr>
+                    <th>Caller</th>
+                    <th>Total Calls</th>
+                    <th>Successful Calls</th>
+                    <th>Declined Calls</th>
+                    <th>Success Rate (%)</th>
+                </tr>
+            </thead>
+            <tbody id="callerStatsBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        let processedData = JSON.parse(localStorage.getItem('callAnalyticsData')) || {};
+        const errorDiv = document.getElementById('errorMessage');
+        const clearDataButton = document.getElementById('clearData');
+        const monthFilterSelect = document.getElementById('monthFilter');
+        const callerFilterSelect = document.getElementById('callerFilter');
+        const callerStatsTable = document.getElementById('callerStatsBody');
+
+        clearDataButton.addEventListener('click', clearStoredData);
+        monthFilterSelect.addEventListener('change', updateStats);
+        callerFilterSelect.addEventListener('change', updateStats);
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        function clearStoredData() {
+            if (confirm('Are you sure you want to clear all stored data? This cannot be undone.')) {
+                processedData = {};
+                localStorage.removeItem('callAnalyticsData');
+                localStorage.removeItem('importedHashes');
+                updateStats();
+                showError('Stored data cleared. Visit Import page to upload a CSV file.');
+            }
+        }
+
+        function updateFilters() {
+            const allPeriods = new Set();
+            const allCallers = new Set();
+            Object.entries(processedData).forEach(([caller, periods]) => {
+                allCallers.add(caller);
+                Object.keys(periods).forEach(period => allPeriods.add(period));
+            });
+            const sortedPeriods = Array.from(allPeriods).sort((a, b) => {
+                const dateA = a === 'Unknown' ? new Date(0) : new Date(a);
+                const dateB = b === 'Unknown' ? new Date(0) : new Date(b);
+                return dateA - dateB;
+            });
+            const sortedCallers = Array.from(allCallers).sort();
+
+            monthFilterSelect.innerHTML = '<option value="all">All Months</option>';
+            callerFilterSelect.innerHTML = '<option value="all">All Callers</option>';
+
+            sortedPeriods.forEach(period => {
+                const option = document.createElement('option');
+                option.value = period;
+                option.textContent = period;
+                monthFilterSelect.appendChild(option);
+            });
+
+            sortedCallers.forEach(caller => {
+                const option = document.createElement('option');
+                option.value = caller;
+                option.textContent = caller;
+                callerFilterSelect.appendChild(option);
+            });
+        }
+
+        function updateStats() {
+            const selectedMonth = monthFilterSelect.value;
+            const selectedCaller = callerFilterSelect.value;
+
+            let filteredData = processedData;
+            if (selectedCaller !== 'all') {
+                filteredData = { [selectedCaller]: processedData[selectedCaller] || {} };
+            }
+
+            let monthFilteredData = {};
+            Object.entries(filteredData).forEach(([caller, periods]) => {
+                monthFilteredData[caller] = {};
+                if (selectedMonth === 'all') {
+                    monthFilteredData[caller] = periods;
+                } else if (periods[selectedMonth]) {
+                    monthFilteredData[caller][selectedMonth] = periods[selectedMonth];
+                }
+            });
+
+            if (Object.keys(monthFilteredData).length === 0) {
+                callerStatsTable.innerHTML = '<tr><td colspan="5">No data available</td></tr>';
+                return;
+            }
+
+            const callerStats = {};
+            Object.entries(monthFilteredData).forEach(([caller, periods]) => {
+                let totalCalls = 0, totalSuccess = 0, totalDeclines = 0;
+                Object.values(periods).forEach(stats => {
+                    totalCalls += stats.calls;
+                    totalSuccess += stats.success;
+                    totalDeclines += stats.declines;
+                });
+                const successRate = totalCalls > 0 ? ((totalSuccess / totalCalls) * 100).toFixed(1) : 0;
+                callerStats[caller] = { totalCalls, totalSuccess, totalDeclines, successRate };
+            });
+
+            callerStatsTable.innerHTML = Object.entries(callerStats)
+                .sort((a, b) => b[1].totalCalls - a[1].totalCalls)
+                .map(([caller, stats]) => `
+                    <tr>
+                        <td>${caller}</td>
+                        <td>${stats.totalCalls.toLocaleString()}</td>
+                        <td>${stats.totalSuccess.toLocaleString()}</td>
+                        <td>${stats.totalDeclines.toLocaleString()}</td>
+                        <td>${stats.successRate}%</td>
+                    </tr>
+                `).join('');
+        }
+
+        if (Object.keys(processedData).length > 0) {
+            updateFilters();
+            updateStats();
+        } else {
+            showError('No data available. Please visit the Import page to upload a CSV file.');
+        }
+    </script>
+</body>
+</html>

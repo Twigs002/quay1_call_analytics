@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emergency CSV Upload</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: #F7FAFC; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; }
+    h1 { color: #DC2626; margin-bottom: 20px; }
+    .upload-section { border: 2px dashed #DC2626; border-radius: 10px; padding: 40px; cursor: pointer; margin: 20px 0; }
+    .upload-section:hover { background: #FFF5F5; }
+    button { margin: 20px auto; padding: 12px 24px; background: #2D3748; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; display: block; width: 100%; }
+    .loading { display: none; padding: 20px; color: #2D3748; }
+    .error { background: #FFF5F5; color: #DC2626; padding: 15px; border-radius: 8px; margin: 20px 0; display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>EMERGENCY CSV UPLOAD</h1>
+    <p>Use only if live sync fails.</p>
+
+    <div class="upload-section" onclick="document.getElementById('fileInput').click()">
+      <div>Drop CSV Here or Click</div>
+      <input type="file" id="fileInput" accept=".csv" style="display:none" />
+    </div>
+
+    <div class="loading" id="loading">Processing...</div>
+    <div class="error" id="error"></div>
+  </div>
+
+  <script>
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('loading').style.display = 'block';
+
+      Papa.parse(file, {
+        header: true,
+        complete: async (results) => {
+          const data = {};
+          results.data.forEach(row => {
+            const caller = row['Call user'] || 'Unknown';
+            const date = row['Activity Date']?.split(' ')[0];
+            if (!data[caller]) data[caller] = {};
+            if (!data[caller][date]) data[caller][date] = { calls: 0, success: 0, declines: 0 };
+            data[caller][date].calls += 1;
+            if (row['Call notes']?.includes('success')) data[caller][date].success += 1;
+            if (row['Call notes']?.includes('declined')) data[caller][date].declines += 1;
+          });
+
+          // Save to data.json via API
+          try {
+            await fetch('/api/save-data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ newData: data })
+            });
+            alert('Uploaded! Live in 10s.');
+            window.location.href = 'index.html';
+          } catch (err) {
+            document.getElementById('error').textContent = 'Upload failed: ' + err.message;
+            document.getElementById('error').style.display = 'block';
+          } finally {
+            document.getElementById('loading').style.display = 'none';
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

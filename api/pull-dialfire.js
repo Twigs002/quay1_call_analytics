@@ -1,52 +1,54 @@
+// api/pull-dialfire.js
 import axios from 'axios';
 
 export default async function handler(req, res) {
-  const token = process.env.DIALFIRE_KEY_NO_ANSWER;
+  const campaignToken = process.env.DIALFIRE_CAMPAIGN_TOKEN;
   const campaignId = 'N4UMU8GPQKZMRM93';
 
-  if (!token) return res.status(400).json({ error: 'Missing API key' });
+  if (!campaignToken) {
+    return res.status(400).json({ error: 'Missing campaign token' });
+  }
 
   try {
-    let allCalls = [];
-    let page = 1;
-    const since = '2025-10-28T00:00:00Z';
-
-    while (true) {
-      const { data } = await axios.get(
-        `https://app.dialfire.com/api/campaigns/${campaignId}/connections`,
-        {
-          params: { page, per_page: 100, since },
-          headers: { Authorization: token }
-        }
-      );
-
-      const items = data.items || [];
-      if (!items.length) break;
-      allCalls = allCalls.concat(items);
-      if (items.length < 100) break;
-      page++;
-    }
-
-    let processedData = {};
-    if (req.method === 'POST') {
-      try { Object.assign(processedData, JSON.parse(req.body).existingData || {}); }
-      catch (e) {}
-    }
-
-    allCalls.forEach(call => {
-      const caller = call.agent_name || 'Unknown';
-      const period = call.created_at?.split('T')[0] || 'Unknown';
-      if (!processedData[caller]) processedData[caller] = {};
-      if (!processedData[caller][period]) {
-        processedData[caller][period] = { calls: 0, success: 0, declines: 0 };
+    const response = await axios.get(
+      `https://api.dialfire.com/api/campaigns/${campaignId}/activities/reports/`,
+      {
+        params: {
+          from: '2025-10-28',
+          to: '2025-10-30'
+        },
+        headers: {
+          'Authorization': `Bearer ${campaignToken}`
+        },
+        timeout: 15000
       }
-      processedData[caller][period].calls += 1;
-      if (call.status_detail === 'success') processedData[caller][period].success += 1;
-      else if (call.status_detail === 'declined') processedData[caller][period].declines += 1;
+    );
+
+    const data = response.data;
+    const processedData = {};
+
+    data.forEach(row => {
+      const caller = row.user || 'Unknown';
+      const date = row.date;
+      if (!processedData[caller]) processedData[caller] = {};
+      processedData[caller][date] = {
+        calls: row.calls || 0,
+        success: row.success || 0,
+        declines: row.declined || 0
+      };
     });
 
-    res.status(200).json({ processedData, totalCalls: allCalls.length });
+    res.status(200).json({
+      processedData,
+      totalCalls: data.reduce((sum, r) => sum + (r.calls || 0), 0),
+      lastSync: new Date().toISOString()
+    });
+
   } catch (error) {
-    res.status(500).json({ error: 'Sync failed', details: error.message });
+    console.error('Dialfire Error:', error.response?.data || error.message);
+    res.status(error.response?.status || 500).json({
+      error: 'Sync failed',
+      details: error.response?.data || error.message
+    });
   }
 }

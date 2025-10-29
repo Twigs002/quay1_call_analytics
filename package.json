@@ -1,0 +1,8 @@
+{
+  "name": "quay1-call-analytics",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}
